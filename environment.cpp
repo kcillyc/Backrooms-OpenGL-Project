@@ -55,7 +55,7 @@ void initEnvironment(){
     glEnable(GL_LIGHTING);
     glEnable(GL_LIGHT0);
     glEnable(GL_NORMALIZE);      // Keeps lighting accurate when using glScalef()
-    glEnable(GL_COLOR_MATERIAL); // Allows glColor3f() to set the material color
+    glEnable(GL_COLOR_MATERIAL); // Allows glColor3f() to    set the material color
     glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
 
     // Set light colors (gives nice contrast between lit and shadowed faces)
@@ -64,7 +64,17 @@ void initEnvironment(){
     glLightfv(GL_LIGHT0, GL_AMBIENT, ambientLight);
     glLightfv(GL_LIGHT0, GL_DIFFUSE, diffuseLight);
     glLightf(GL_LIGHT0, GL_LINEAR_ATTENUATION, 0.08f);
-    glLightf(GL_LIGHT0, GL_QUADRATIC_ATTENUATION, 0.02f);    
+    glLightf(GL_LIGHT0, GL_QUADRATIC_ATTENUATION, 0.02f);  
+    
+    // Fog - Added Feature Searched
+    glEnable(GL_FOG);
+    GLfloat fogColor[] = { 0.05f, 0.05f, 0.04f, 1.0f }; // Very dark shadow/black
+    glFogfv(GL_FOG_COLOR, fogColor);
+    glFogi(GL_FOG_MODE, GL_EXP2); // Smooth exponential falloff
+    glFogf(GL_FOG_DENSITY, 0.10f); // Increase for thicker darkness, decrease to see further
+
+    // Match background clear color to fog color
+    glClearColor(0.05f, 0.05f, 0.04f, 1.0f);
 }
 
 void drawCubeEnvironment(float posX, float posY, float posZ, 
@@ -103,6 +113,14 @@ void displayEnvironment(){
     GLfloat lightPos[] = { 0.0f, 0.0f, 0.0f, 1.0f };
     glLightfv(GL_LIGHT0, GL_POSITION, lightPos);
     
+    // Ceiling
+    drawCubeEnvironment(0.0, 1.0, -10.0,              // Position
+                        10.0, 0.1, 13.0);             // Scale
+
+    // Floor
+    drawCubeEnvironment(0.0, -1.0, -10.0,             // Position
+                        10.0, 0.1, 13.0);             // Scale
+
 
     // Draw Walls - Arranged by Z Distance
     // Front Left Wall
@@ -139,6 +157,11 @@ void displayEnvironment(){
     drawCubeEnvironment(3.0, 0.0, -12.0,            // Position
                         1.5, 1.0, 0.3,              // Scale
                         -15.0, 0.0, 1.0, 0.0);      // Rotation
+
+    // Background Wall
+    drawCubeEnvironment(0.0, 0.0, -25.0,            // Position
+                        5.0, 1.0, 0.2);             // Scale
+                        
 
     // Draw Pillars
     // Right Pillar
