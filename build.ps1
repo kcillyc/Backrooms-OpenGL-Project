@@ -29,10 +29,12 @@ $env:PATH = "C:\msys64\ucrt64\bin;$env:PATH"
 New-Item -ItemType Directory -Force -Path $buildDirectory | Out-Null
 
 $hudSourcePath = Join-Path $projectRoot "src\ui\hud.cpp"
+$textureSourcePath = Join-Path $projectRoot "src\rendering\texture.cpp"
 
 & $compiler `
     $sourcePath `
     $hudSourcePath `
+    $textureSourcePath `
     "-I$(Join-Path $freeglutRoot 'include')" `
     "-I$(Join-Path $glewRoot 'include')" `
     "-L$(Join-Path $freeglutRoot 'lib')" `

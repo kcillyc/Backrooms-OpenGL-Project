@@ -7,10 +7,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "../ui/hud.h"
-
-// stb_image pulls in the implementation here (only once in the whole project)
-#define STB_IMAGE_IMPLEMENTATION
-#include "../../external/stb_image.h"
+#include "../rendering/texture.h"
 
 // Window and timing settings
 #define WIN_W          900
@@ -221,36 +218,7 @@ static void drawVBO(GLuint id, int n)
     glTexCoordPointer(2, GL_FLOAT, sizeof(Vtx), BUFFER_OFFSET(12));
     glDrawArrays(GL_QUADS, 0, n);
 }
-
-/* ---------------------- texture loading (stb_image) ---------------------- */
-
 static GLuint gTexture = 0;
-
-// Load wood.png from disk and upload it as a GL texture
-static void loadTexture(void)
-{
-    int w, h, channels;
-    unsigned char *img = stbi_load("assets/wood.png", &w, &h, &channels, 3);
-
-    if (img == NULL) {
-        printf("Failed to load texture: wood.png\n");
-        exit(1);
-    }
-
-    glGenTextures(1, &gTexture);
-    glBindTexture(GL_TEXTURE_2D, gTexture);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, w, h, 0, GL_RGB,
-                 GL_UNSIGNED_BYTE, img);
-
-    // Modulate texture color with current vertex/color state
-    glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-    printf("texture: %d x %d, %d channels\n", w, h, channels);
-}
-
 
 /* ----------------------------- GLUT callbacks ----------------------------- */
 
@@ -291,7 +259,7 @@ static void display(void)
         gHoldTicks,
         LONG_TICKS
     );
-    
+
     glFlush();
 }
 
@@ -379,7 +347,7 @@ static void init(void)
     buildChair();
     buildFloor();
     initVBOs();
-    loadTexture();
+    gTexture = Texture::load("assets/wood.png");
 
     printf("chair mesh: %d vertices\n", gChairN);
     printf("OpenGL version: %s\n", (const char *)glGetString(GL_VERSION));
