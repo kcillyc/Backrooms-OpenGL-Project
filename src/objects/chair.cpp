@@ -1,13 +1,23 @@
+#define GLEW_STATIC
+#define BUFFER_OFFSET(i) ((void*)(i))
+
+#include <GL/glew.h>
 #include "chair.h"
 
 // Construct the chair mesh from boxes: seat, legs, back posts, rail, slats
 namespace Chair {
 
+static GLuint gChairVBO = 0;
 static const int MAX_VERTS = 2000;
 
 // Chair mesh lives in this array; gChairN is how many vertices are used
 static Vtx gChair[MAX_VERTS];
 static int gChairN = 0;
+
+static const float SPIN_SPEED = 20.0f; // degrees per frame step (scaled in animate)
+
+static float gAngle = 0.0f;      // current Y rotation of the chair
+static float gSpin  = 0.0f;      // smoothed spin speed
 
 /* ---------- small math helpers and mesh storage ---------- */
 
@@ -127,9 +137,103 @@ void build(float textureScale)
     }
 }
 
-const Vtx* vertices()
+void initialize()
 {
-    return gChair;
+    glGenBuffers(1, &gChairVBO);
+    glBindBuffer(GL_ARRAY_BUFFER, gChairVBO);
+
+    glBufferData(
+        GL_ARRAY_BUFFER,
+        MAX_VERTS * sizeof(Vtx),
+        NULL,
+        GL_STATIC_DRAW
+    );
+
+    glBufferSubData(
+        GL_ARRAY_BUFFER,
+        0,
+        gChairN * sizeof(Vtx),
+        gChair
+    );
+
+    glVertexPointer(
+        3,
+        GL_FLOAT,
+        sizeof(Vtx),
+        BUFFER_OFFSET(0)
+    );
+
+    glTexCoordPointer(
+        2,
+        GL_FLOAT,
+        sizeof(Vtx),
+        BUFFER_OFFSET(12)
+    );
+
+    glEnableClientState(GL_VERTEX_ARRAY);
+    glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+}
+
+void draw(
+    GLuint texture,
+    bool useTexture
+)
+{
+    if (useTexture) {
+        glBindTexture(GL_TEXTURE_2D, texture);
+        glEnable(GL_TEXTURE_2D);
+        glColor3f(1.0f, 1.0f, 1.0f);
+    } else {
+        glDisable(GL_TEXTURE_2D);
+        glColor3f(0.62f, 0.42f, 0.24f);
+    }
+
+    glPushMatrix();
+
+    glRotatef(gAngle, 0.0f, 1.0f, 0.0f);
+
+    glBindBuffer(GL_ARRAY_BUFFER, gChairVBO);
+
+    glVertexPointer(
+        3,
+        GL_FLOAT,
+        sizeof(Vtx),
+        BUFFER_OFFSET(0)
+    );
+
+    glTexCoordPointer(
+        2,
+        GL_FLOAT,
+        sizeof(Vtx),
+        BUFFER_OFFSET(12)
+    );
+
+    glDrawArrays(GL_QUADS, 0, gChairN);
+
+    glPopMatrix();
+
+    glColor3f(1.0f, 1.0f, 1.0f);
+}
+
+void update(bool spinning, float deltaSeconds)
+{
+    if (spinning) {
+        gSpin += (SPIN_SPEED - gSpin) * 0.06f;
+    } else {
+        gSpin += (0.0f - gSpin) * 0.06f;
+    }
+
+    gAngle += gSpin * deltaSeconds;
+
+    if (gAngle > 360.0f) {
+        gAngle -= 360.0f;
+    }
+}
+
+void resetRotation()
+{
+    gAngle = 0.0f;
+    gSpin = 0.0f;
 }
 
 int vertexCount()
