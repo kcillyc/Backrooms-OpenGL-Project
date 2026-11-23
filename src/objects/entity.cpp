@@ -3,8 +3,9 @@
 #include <cstdio>
 #include <cstdlib>
 
-#define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"        // single-header image loader (see note below)
+#include "../../external/stb_image.h"  
+
+namespace Entity {
 
 GLuint tex;
 float imgAspect = 1.0f;
@@ -14,6 +15,13 @@ const float APPEAR    = 1.0f;  // seconds until it shows up
 const float DISAPPEAR = 7.0f;  // seconds until it vanishes
 const float FADE      = 0.6f;  // fade in/out duration
 const float HEIGHT    = 1.0f;  // entity height in world units (screen is 2 tall)
+
+/* 
+TODO:
+    Please refactor the entity. 
+    Keep the existing movement, fade, and texture behavior, but remove the standalone main(), GLUT loop, clear/swap calls, and callback registration. 
+    Expose initialize(), update(float), draw(), and destroy(). 
+    Make the entity render as a billboard inside the existing 3D scene rather than replacing the projection with glOrtho.
 
 void display() {
     float totalTime = glutGet(GLUT_ELAPSED_TIME) / 1000.0f;
@@ -107,4 +115,6 @@ int main(int argc, char** argv) {
     glutKeyboardFunc(keyboard);
     glutMainLoop();
     return 0;
+}
+*/
 }
