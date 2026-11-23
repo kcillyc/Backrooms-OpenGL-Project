@@ -12,6 +12,7 @@ $glewRoot = "C:\msys64\ucrt64"
 $buildDirectory = Join-Path $projectRoot "build"
 $sourcePath = [System.IO.Path]::GetFullPath($SourceFile)
 $chairSourcePath = Join-Path $projectRoot "src\objects\chair.cpp"
+$balloonSourcePath = Join-Path $projectRoot "src\objects\balloon.cpp"
 $environmentSourcePath = Join-Path $projectRoot "src\scene\environment.cpp"
 
 if (-not (Test-Path -LiteralPath $sourcePath -PathType Leaf)) {
@@ -39,6 +40,7 @@ $textureSourcePath = Join-Path $projectRoot "src\rendering\texture.cpp"
     $textureSourcePath `
     $chairSourcePath `
     $environmentSourcePath `
+    $balloonSourcePath `
     "-I$(Join-Path $freeglutRoot 'include')" `
     "-I$(Join-Path $glewRoot 'include')" `
     "-L$(Join-Path $freeglutRoot 'lib')" `

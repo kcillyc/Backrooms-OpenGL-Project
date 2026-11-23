@@ -9,6 +9,7 @@ using namespace std;
 #include "../ui/hud.h"
 #include "../rendering/texture.h"
 #include "../objects/chair.h"
+#include "../objects/balloon.h"
 #include "../scene/environment.h"
 
 // Window and timing settings
@@ -42,10 +43,8 @@ static void display(void)
 
     drawEnvironment();
 
-    Chair::draw(
-        gTexture,
-        gUseTexture
-    );
+    Balloon::draw();
+    Chair::draw(gTexture, gUseTexture);
 
     Hud::draw(
         WIN_W,
@@ -73,10 +72,8 @@ static void animate(int value)
         }
     }
 
-    Chair::update(
-        gLongPress,
-        0.016f
-    );
+    Balloon::update(0.016f);
+    Chair::update(gLongPress,0.016f);
 
     glutPostRedisplay();
     glutTimerFunc(TIMER_MS, animate, 0);
@@ -85,10 +82,22 @@ static void animate(int value)
 // Mouse callback: left button press starts hold tracking, release resets it
 static void mouseMonitor(int button, int state, int x, int y)
 {
+    if (button == 3 && state == GLUT_DOWN) {
+        Balloon::onScroll(1);
+        return;
+    }
+
+    if (button == 4 && state == GLUT_DOWN) {
+        Balloon::onScroll(-1);
+        return;
+    }
+
     (void)x;
     (void)y;
 
-    if (button != GLUT_LEFT_BUTTON) return;
+    if (button != GLUT_LEFT_BUTTON) {
+        return;
+    }
 
     if (state == GLUT_DOWN) {
         gHolding = true;
@@ -109,9 +118,12 @@ static void keyMonitor(unsigned char key, int x, int y)
 
     if (key == 'r' || key == 'R') {
         Chair::resetRotation();
+        Balloon::reset();
+
         gHolding = false;
         gLongPress = false;
         gHoldTicks = 0;
+        
     } else if (key == 'x' || key == 'X') {
         exit(0);
     } else if (key == 't' || key == 'T') {
@@ -130,7 +142,7 @@ static void init(void)
     glEnable(GL_TEXTURE_2D);
 
     initEnvironment();
-
+    Balloon::initialize();
     Chair::build(TEX_SCALE);
     Chair::initialize();
     gTexture = Texture::load("assets/wood.png");
