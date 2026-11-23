@@ -9,7 +9,7 @@
 
 // stb_image pulls in the implementation here (only once in the whole project)
 #define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
+#include "../../external/stb_image.h"
 
 // Window and timing settings
 #define WIN_W          900
@@ -229,7 +229,7 @@ static GLuint gTexture = 0;
 static void loadTexture(void)
 {
     int w, h, channels;
-    unsigned char *img = stbi_load("wood.png", &w, &h, &channels, 3);
+    unsigned char *img = stbi_load("assets/wood.png", &w, &h, &channels, 3);
 
     if (img == NULL) {
         printf("Failed to load texture: wood.png\n");

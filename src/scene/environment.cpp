@@ -4,7 +4,7 @@
 #include <GL/glut.h>
 
 #define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
+#include "../../external/stb_image.h"
 
 using namespace std;
 
@@ -137,7 +137,7 @@ void initEnvironment() {
 
     // Load environment textures
     glEnable(GL_TEXTURE_2D);
-    wallTexID = loadTexture("wallpaper.jpg");
+    wallTexID = loadTexture("assets/wallpaper.jpg");
 
     // Configure scene lighting & atmosphere
     initLightingAndFog();

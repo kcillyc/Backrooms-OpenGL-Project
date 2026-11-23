@@ -1,0 +1,28 @@
+# Build output
+/build/
+/*.exe
+
+# Compiled libraries and object files
+*.dll
+*.so
+*.a
+*.o
+*.obj
+*.gch
+
+# Local dependency folder
+/.deps/
+
+# Visual Studio Code user files
+.vscode/*.log
+.vscode/*.tmp
+.vscode/*.user
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Debugging files
+*.pdb
+*.ilk
+.gdb_history
