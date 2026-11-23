@@ -11,6 +11,7 @@ $freeglutRoot = Join-Path $projectRoot ".deps\freeglut\ucrt64"
 $glewRoot = "C:\msys64\ucrt64"
 $buildDirectory = Join-Path $projectRoot "build"
 $sourcePath = [System.IO.Path]::GetFullPath($SourceFile)
+$chairSourcePath = Join-Path $projectRoot "src\objects\chair.cpp"
 
 if (-not (Test-Path -LiteralPath $sourcePath -PathType Leaf)) {
     throw "Source file not found: $sourcePath"
@@ -35,6 +36,7 @@ $textureSourcePath = Join-Path $projectRoot "src\rendering\texture.cpp"
     $sourcePath `
     $hudSourcePath `
     $textureSourcePath `
+    $chairSourcePath `
     "-I$(Join-Path $freeglutRoot 'include')" `
     "-I$(Join-Path $glewRoot 'include')" `
     "-L$(Join-Path $freeglutRoot 'lib')" `
