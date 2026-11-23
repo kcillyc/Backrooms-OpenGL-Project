@@ -12,6 +12,7 @@ $glewRoot = "C:\msys64\ucrt64"
 $buildDirectory = Join-Path $projectRoot "build"
 $sourcePath = [System.IO.Path]::GetFullPath($SourceFile)
 $chairSourcePath = Join-Path $projectRoot "src\objects\chair.cpp"
+$environmentSourcePath = Join-Path $projectRoot "src\scene\environment.cpp"
 
 if (-not (Test-Path -LiteralPath $sourcePath -PathType Leaf)) {
     throw "Source file not found: $sourcePath"
@@ -37,6 +38,7 @@ $textureSourcePath = Join-Path $projectRoot "src\rendering\texture.cpp"
     $hudSourcePath `
     $textureSourcePath `
     $chairSourcePath `
+    $environmentSourcePath `
     "-I$(Join-Path $freeglutRoot 'include')" `
     "-I$(Join-Path $glewRoot 'include')" `
     "-L$(Join-Path $freeglutRoot 'lib')" `

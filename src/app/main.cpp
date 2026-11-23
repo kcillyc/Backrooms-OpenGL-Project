@@ -3,10 +3,13 @@
 #include <GL/glew.h>
 #include <GL/glut.h>
 #include <stdio.h>
+#include <iostream>
+using namespace std;
 
 #include "../ui/hud.h"
 #include "../rendering/texture.h"
 #include "../objects/chair.h"
+#include "../scene/environment.h"
 
 // Window and timing settings
 #define WIN_W          900
@@ -31,14 +34,13 @@ static GLuint gTexture = 0;
 
 /* ----------------------------- GLUT callbacks ----------------------------- */
 
-// Draw the scene: chair (textured or flat color), then HUD
 static void display(void)
 {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
-    gluLookAt(0.0, 1.05, 1.75, 0.0, 0.48, 0.0, 0.0, 1.0, 0.0);
+
+    drawEnvironment();
 
     Chair::draw(
         gTexture,
@@ -54,7 +56,7 @@ static void display(void)
         LONG_TICKS
     );
 
-    glFlush();
+    glutSwapBuffers();
 }
 
 // Timer callback: update hold/spin state, advance rotation, request redraw
@@ -122,14 +124,12 @@ static void keyMonitor(unsigned char key, int x, int y)
 // Initial OpenGL state, mesh build, VBO upload, texture load
 static void init(void)
 {
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    gluPerspective(45.0, (double)WIN_W / (double)WIN_H, 0.1, 100.0);
-
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_TEXTURE_2D);
+
+    initEnvironment();
 
     Chair::build(TEX_SCALE);
     Chair::initialize();
@@ -143,15 +143,43 @@ static void init(void)
     printf("OpenGL vendor : %s\n", (const char *)glGetString(GL_VENDOR));
 }
 
-int main(int argc, char **argv)
+int main(int argc, char** argv)
 {
     glutInit(&argc, argv);
-    glutInitDisplayMode(GLUT_RGBA | GLUT_DEPTH);
-    glutInitWindowSize(WIN_W, WIN_H);
-    glutInitWindowPosition(60, 60);
-    glutCreateWindow("Wooden chair - VBO, no lighting");
 
-    glewInit();
+    glutInitDisplayMode(
+        GLUT_DOUBLE |
+        GLUT_RGB |
+        GLUT_DEPTH
+    );
+
+    glutCreateWindow("The Backrooms");
+
+    GLenum err = glewInit();
+
+    if (err != GLEW_OK) {
+        cout << "GLEW Initialization Failed: "
+             << glewGetErrorString(err)
+             << endl;
+
+        return -1;
+    }
+
+    glEnable(GL_DEPTH_TEST);
+
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+
+    gluPerspective(
+        45.0,
+        16.0 / 9.0,
+        0.1,
+        100.0
+    );
+
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+
     init();
 
     glutDisplayFunc(display);
@@ -159,6 +187,9 @@ int main(int argc, char **argv)
     glutKeyboardFunc(keyMonitor);
     glutTimerFunc(TIMER_MS, animate, 0);
 
+    glutFullScreen();
+
     glutMainLoop();
+
     return 0;
 }
