@@ -18,7 +18,6 @@ using namespace std;
 #define TIMER_MS       16        // roughly 60 fps
 #define LONG_TICKS     38        // how long to hold before spin kicks in (~0.6s)
 
-
 static const float TEX_SCALE  = 3.0f;    // scales texture coords when building quads
 
 // Rotation and hold-to-spin state
@@ -123,7 +122,7 @@ static void keyMonitor(unsigned char key, int x, int y)
         gHolding = false;
         gLongPress = false;
         gHoldTicks = 0;
-        
+
     } else if (key == 'x' || key == 'X') {
         exit(0);
     } else if (key == 't' || key == 'T') {

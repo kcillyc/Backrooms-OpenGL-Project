@@ -12,11 +12,11 @@ struct Position {
 };
 
 // Constants defining start/end positions, size limits (0.6x to 1.8x), and float speed
-inline constexpr Position START_POSITION{-1.6f, 1.8f, -0.7f};
-inline constexpr Position TARGET_POSITION{1.0f, 3.1f, -1.6f};
-inline constexpr int MIN_SCALE_TICKS = 6;
-inline constexpr int INITIAL_SCALE_TICKS = 10;
-inline constexpr int MAX_SCALE_TICKS = 18;
+inline constexpr Position START_POSITION{0.0f, 0.0f, -3.0f};
+inline constexpr Position TARGET_POSITION{0.7f, 0.4f, -7.0f};
+inline constexpr int MIN_SCALE_TICKS = 3;
+inline constexpr int INITIAL_SCALE_TICKS = 1;
+inline constexpr int MAX_SCALE_TICKS = 10;
 inline constexpr float SCALE_STEP = 0.1f;
 inline constexpr float FLOAT_DURATION = 3.0f;
 
