@@ -6,6 +6,7 @@
 #include <GL/freeglut_ext.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include "../ui/hud.h"
 
 // stb_image pulls in the implementation here (only once in the whole project)
 #define STB_IMAGE_IMPLEMENTATION
@@ -250,62 +251,6 @@ static void loadTexture(void)
     printf("texture: %d x %d, %d channels\n", w, h, channels);
 }
 
-/* ------------------------------ text HUD ---------------------------------- */
-
-// Draw a bitmap string at the given 2D position (used in HUD mode)
-static void drawText(float x, float y, const char *s)
-{
-    glRasterPos2f(x, y);
-    glutBitmapString(GLUT_BITMAP_9_BY_15, (const unsigned char *)s);
-}
-
-// Draw on-screen instructions and a hold-to-spin progress bar when needed
-static void drawHUD(void)
-{
-    // Switch to 2D orthographic projection for the HUD
-    glMatrixMode(GL_PROJECTION);
-    glPushMatrix();
-    glLoadIdentity();
-    gluOrtho2D(0.0, (GLdouble)WIN_W, 0.0, (GLdouble)WIN_H);
-
-    glMatrixMode(GL_MODELVIEW);
-    glPushMatrix();
-    glLoadIdentity();
-    glDisable(GL_TEXTURE_2D);
-
-    // Basic instructions
-    drawText(16.0f, (float)WIN_H - 26.0f, "Wooden chair");
-    drawText(16.0f, (float)WIN_H - 46.0f, "VBO + texture, no lighting");
-    drawText(16.0f, (float)WIN_H - 66.0f, "hold LEFT mouse button for 0.6 s to spin");
-    drawText(16.0f, (float)WIN_H - 86.0f, "r reset   x quit");
-
-    // Show progress bar while holding but before long-press triggers
-    if (gHolding && !gLongPress) {
-        float t = (float)gHoldTicks / (float)LONG_TICKS;
-        if (t > 1.0f) t = 1.0f;
-        glColor3f(0.85f, 0.70f, 0.35f);
-        glBegin(GL_QUADS);
-            glVertex2f(16.0f, (float)WIN_H - 102.0f);
-            glVertex2f(16.0f + 220.0f * t, (float)WIN_H - 102.0f);
-            glVertex2f(16.0f + 220.0f * t, (float)WIN_H - 97.0f);
-            glVertex2f(16.0f, (float)WIN_H - 97.0f);
-        glEnd();
-    }
-
-    // Hint that spinning is active
-    if (gLongPress) {
-        drawText(16.0f, (float)WIN_H - 106.0f, "spinning - release to stop");
-    }
-
-    // Restore state for 3D drawing
-    glColor3f(1.0f, 1.0f, 1.0f);
-    glEnable(GL_TEXTURE_2D);
-    glPopMatrix();
-
-    glMatrixMode(GL_PROJECTION);
-    glPopMatrix();
-    glMatrixMode(GL_MODELVIEW);
-}
 
 /* ----------------------------- GLUT callbacks ----------------------------- */
 
@@ -338,7 +283,15 @@ static void display(void)
 
     if (!gUseTexture) glColor3f(1.0f, 1.0f, 1.0f);
 
-    drawHUD();
+    Hud::draw(
+        WIN_W,
+        WIN_H,
+        gHolding,
+        gLongPress,
+        gHoldTicks,
+        LONG_TICKS
+    );
+    
     glFlush();
 }
 
