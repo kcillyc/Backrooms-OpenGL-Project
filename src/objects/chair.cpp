@@ -1,3 +1,5 @@
+// TODO: ADD Normals to be affected by LIGHTING
+
 #define GLEW_STATIC
 #define BUFFER_OFFSET(i) ((void*)(i))
 
@@ -188,11 +190,17 @@ void draw(
         glColor3f(0.62f, 0.42f, 0.24f);
     }
 
+
+    glDisable(GL_LIGHTING); // TODO: Remove after adding Normals
     glPushMatrix();
 
+    glTranslatef(0.0f, -1.0f, -4.0f);
     glRotatef(gAngle, 0.0f, 1.0f, 0.0f);
 
     glBindBuffer(GL_ARRAY_BUFFER, gChairVBO);
+
+    glEnableClientState(GL_VERTEX_ARRAY);
+    glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 
     glVertexPointer(
         3,
@@ -211,6 +219,8 @@ void draw(
     glDrawArrays(GL_QUADS, 0, gChairN);
 
     glPopMatrix();
+
+    glEnable(GL_LIGHTING); // TODO: Remove after adding Normals
 
     glColor3f(1.0f, 1.0f, 1.0f);
 }
