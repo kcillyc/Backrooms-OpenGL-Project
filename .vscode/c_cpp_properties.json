@@ -1,0 +1,17 @@
+{
+    "version": 4,
+    "configurations": [
+        {
+            "name": "Win32-FreeGLUT",
+            "compilerPath": "C:\\msys64\\ucrt64\\bin\\g++.exe",
+            "intelliSenseMode": "windows-gcc-x64",
+            "cppStandard": "c++17",
+            "cStandard": "c17",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "${workspaceFolder}/.deps/freeglut/ucrt64/include",
+                "C:/msys64/ucrt64/include"
+            ]
+        }
+    ]
+}

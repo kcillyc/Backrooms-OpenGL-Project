@@ -3,8 +3,8 @@
 #include <GL/glew.h>
 #include <GL/glut.h>
 
-#define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
+#include "environment.h"
+#include "../../external/stb_image.h"
 
 using namespace std;
 
@@ -63,7 +63,7 @@ void drawCubeEnvironment(GLuint texID, float tileX, float tileY,
                          float posX, float posY, float posZ,
                          float scaleX, float scaleY, float scaleZ,
                          float rotAngle = 0.0f, float rotX = 0.0f, float rotY = 0.0f, float rotZ = 0.0f);
-void displayEnvironment();
+void drawEnvironment();
 
 // ============================================================================
 // ASSET & RESOURCE INITIALIZATION
@@ -137,7 +137,7 @@ void initEnvironment() {
 
     // Load environment textures
     glEnable(GL_TEXTURE_2D);
-    wallTexID = loadTexture("wallpaper.jpg");
+    wallTexID = loadTexture("assets/wallpaper.jpg");
 
     // Configure scene lighting & atmosphere
     initLightingAndFog();
@@ -198,10 +198,7 @@ void drawCubeEnvironment(GLuint texID, float tileX, float tileY,
 }
 
 // Main display callback: positions camera spotlight and renders the Backrooms layout
-void displayEnvironment() {
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
+void drawEnvironment() {
 
     // Lock spotlight to the camera's origin looking down -Z
     GLfloat lightPos[]      = { 0.0f, 0.0f,  0.0f, 1.0f };
@@ -237,33 +234,4 @@ void displayEnvironment() {
     drawCubeEnvironment(wallTexID, 0.5f, 1.0f,   2.3f, 0.0f,  -5.7f,   0.15f, 1.0f, 0.15f,  45.0f, 0.0f, 1.0f, 0.0f);
     drawCubeEnvironment(wallTexID, 0.5f, 1.0f,  -0.6f, 0.0f,  -7.0f,   0.15f, 1.0f, 0.15f, -30.0f, 0.0f, 1.0f, 0.0f);
 
-    glFlush();
-}
-
-// ============================================================================
-// ENTRY POINT
-// ============================================================================
-int main(int argc, char** argv) {
-    glutInit(&argc, argv);
-    glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB | GLUT_DEPTH);
-    glutCreateWindow("The Backrooms");
-    glutFullScreen();
-
-    GLenum err = glewInit();
-    if (err != GLEW_OK) {
-        cerr << "GLEW Initialization Failed: " << glewGetErrorString(err) << endl;
-        return -1;
-    }
-
-    // Configure depth testing & 16:9 perspective camera
-    glEnable(GL_DEPTH_TEST);
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    gluPerspective(45.0, 16.0 / 9.0, 0.1, 100.0);
-
-    initEnvironment();
-    glutDisplayFunc(displayEnvironment);
-    glutMainLoop();
-
-    return 0;
 }
