@@ -1,50 +1,78 @@
 #define GLEW_STATIC 
-#include<iostream>
+#include <iostream>
 #include <GL/glew.h> 
 #include <GL/glut.h>
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
 using namespace std;
 
-GLuint VBOid;
+GLuint VBOid, wallTexID;
 
 // Cube used for Environment (Walls, Pillars)
 // Format: X, Y, Z,  NormalX, NormalY, NormalZ (4 vertices per face * 6 faces = 24 vertices)
+// Format: X, Y, Z,  NormalX, NormalY, NormalZ,  U, V (8 floats per vertex)
 GLfloat cubeEnvVertices[] = {
-    // Front face (Normal: 0, 0, 1)
-     1.0f,  1.0f,  1.0f,   0.0f,  0.0f,  1.0f,
-    -1.0f,  1.0f,  1.0f,   0.0f,  0.0f,  1.0f,
-    -1.0f, -1.0f,  1.0f,   0.0f,  0.0f,  1.0f,
-     1.0f, -1.0f,  1.0f,   0.0f,  0.0f,  1.0f,
+    // Front face
+     1.0f,  1.0f,  1.0f,   0.0f,  0.0f,  1.0f,   1.0f, 1.0f,
+    -1.0f,  1.0f,  1.0f,   0.0f,  0.0f,  1.0f,   0.0f, 1.0f,
+    -1.0f, -1.0f,  1.0f,   0.0f,  0.0f,  1.0f,   0.0f, 0.0f,
+     1.0f, -1.0f,  1.0f,   0.0f,  0.0f,  1.0f,   1.0f, 0.0f,
 
-    // Back face (Normal: 0, 0, -1)
-     1.0f,  1.0f, -1.0f,   0.0f,  0.0f, -1.0f,
-     1.0f, -1.0f, -1.0f,   0.0f,  0.0f, -1.0f,
-    -1.0f, -1.0f, -1.0f,   0.0f,  0.0f, -1.0f,
-    -1.0f,  1.0f, -1.0f,   0.0f,  0.0f, -1.0f,
+    // Back face
+     1.0f,  1.0f, -1.0f,   0.0f,  0.0f, -1.0f,   0.0f, 1.0f,
+     1.0f, -1.0f, -1.0f,   0.0f,  0.0f, -1.0f,   0.0f, 0.0f,
+    -1.0f, -1.0f, -1.0f,   0.0f,  0.0f, -1.0f,   1.0f, 0.0f,
+    -1.0f,  1.0f, -1.0f,   0.0f,  0.0f, -1.0f,   1.0f, 1.0f,
 
-    // Top face (Normal: 0, 1, 0)
-     1.0f,  1.0f,  1.0f,   0.0f,  1.0f,  0.0f,
-     1.0f,  1.0f, -1.0f,   0.0f,  1.0f,  0.0f,
-    -1.0f,  1.0f, -1.0f,   0.0f,  1.0f,  0.0f,
-    -1.0f,  1.0f,  1.0f,   0.0f,  1.0f,  0.0f,
+    // Top face
+     1.0f,  1.0f,  1.0f,   0.0f,  1.0f,  0.0f,   1.0f, 0.0f,
+     1.0f,  1.0f, -1.0f,   0.0f,  1.0f,  0.0f,   1.0f, 1.0f,
+    -1.0f,  1.0f, -1.0f,   0.0f,  1.0f,  0.0f,   0.0f, 1.0f,
+    -1.0f,  1.0f,  1.0f,   0.0f,  1.0f,  0.0f,   0.0f, 0.0f,
 
-    // Bottom face (Normal: 0, -1, 0)
-     1.0f, -1.0f,  1.0f,   0.0f, -1.0f,  0.0f,
-    -1.0f, -1.0f,  1.0f,   0.0f, -1.0f,  0.0f,
-    -1.0f, -1.0f, -1.0f,   0.0f, -1.0f,  0.0f,
-     1.0f, -1.0f, -1.0f,   0.0f, -1.0f,  0.0f,
+    // Bottom face
+     1.0f, -1.0f,  1.0f,   0.0f, -1.0f,  0.0f,   1.0f, 1.0f,
+    -1.0f, -1.0f,  1.0f,   0.0f, -1.0f,  0.0f,   0.0f, 1.0f,
+    -1.0f, -1.0f, -1.0f,   0.0f, -1.0f,  0.0f,   0.0f, 0.0f,
+     1.0f, -1.0f, -1.0f,   0.0f, -1.0f,  0.0f,   1.0f, 0.0f,
 
-    // Right face (Normal: 1, 0, 0)
-     1.0f,  1.0f,  1.0f,   1.0f,  0.0f,  0.0f,
-     1.0f, -1.0f,  1.0f,   1.0f,  0.0f,  0.0f,
-     1.0f, -1.0f, -1.0f,   1.0f,  0.0f,  0.0f,
-     1.0f,  1.0f, -1.0f,   1.0f,  0.0f,  0.0f,
+    // Right face
+     1.0f,  1.0f,  1.0f,   1.0f,  0.0f,  0.0f,   0.0f, 1.0f,
+     1.0f, -1.0f,  1.0f,   1.0f,  0.0f,  0.0f,   0.0f, 0.0f,
+     1.0f, -1.0f, -1.0f,   1.0f,  0.0f,  0.0f,   1.0f, 0.0f,
+     1.0f,  1.0f, -1.0f,   1.0f,  0.0f,  0.0f,   1.0f, 1.0f,
 
-    // Left face (Normal: -1, 0, 0)
-    -1.0f,  1.0f,  1.0f,  -1.0f,  0.0f,  0.0f,
-    -1.0f,  1.0f, -1.0f,  -1.0f,  0.0f,  0.0f,
-    -1.0f, -1.0f, -1.0f,  -1.0f,  0.0f,  0.0f,
-    -1.0f, -1.0f,  1.0f,  -1.0f,  0.0f,  0.0f
+    // Left face
+    -1.0f,  1.0f,  1.0f,  -1.0f,  0.0f,  0.0f,   1.0f, 1.0f,
+    -1.0f,  1.0f, -1.0f,  -1.0f,  0.0f,  0.0f,   0.0f, 1.0f,
+    -1.0f, -1.0f, -1.0f,  -1.0f,  0.0f,  0.0f,   0.0f, 0.0f,
+    -1.0f, -1.0f,  1.0f,  -1.0f,  0.0f,  0.0f,   1.0f, 0.0f
 };
+GLuint loadTexture(const char* filename) {
+    GLuint texID;
+    glGenTextures(1, &texID);
+    glBindTexture(GL_TEXTURE_2D, texID);
+
+    // Repeat the texture if UVs go past 1.0, and use smooth filtering
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    stbi_set_flip_vertically_on_load(true); // OpenGL expects Y=0 at the bottom
+    int width, height, channels;
+    unsigned char* data = stbi_load(filename, &width, &height, &channels, 0);
+
+    if (data) {
+        GLenum format = (channels == 4) ? GL_RGBA : GL_RGB;
+        glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
+    } else {
+        cout << "Failed to load texture: " << filename << endl;
+    }
+
+    stbi_image_free(data);
+    return texID;
+}
 
 void initEnvironment(){
     glGenBuffers(1, &VBOid);
@@ -57,6 +85,9 @@ void initEnvironment(){
     glEnable(GL_NORMALIZE);      // Keeps lighting accurate when using glScalef()
     glEnable(GL_COLOR_MATERIAL); // Allows glColor3f() to    set the material color
     glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
+
+    glEnable(GL_TEXTURE_2D);
+    wallTexID = loadTexture("wallpaper.jpg"); // Put your image in the same folder as the .exe
 
     // Set light colors (gives nice contrast between lit and shadowed faces)
     GLfloat ambientLight[]  = { 0.30f, 0.28f, 0.20f, 1.0f }; // Soft warm shadow tint
@@ -77,9 +108,22 @@ void initEnvironment(){
     glClearColor(0.05f, 0.05f, 0.04f, 1.0f);
 }
 
-void drawCubeEnvironment(float posX, float posY, float posZ, 
+void drawCubeEnvironment(GLuint texID, float tileX, float tileY,
+                         float posX, float posY, float posZ, 
                          float scaleX, float scaleY, float scaleZ,
                          float rotAngle = 0.0, float rotX = 0.0, float rotY = 0.0, float rotZ = 0.0){
+
+    if (texID != 0) {
+        glEnable(GL_TEXTURE_2D);
+        glBindTexture(GL_TEXTURE_2D, texID);
+        glMatrixMode(GL_TEXTURE);
+        glPushMatrix();
+        glLoadIdentity();
+        glScalef(tileX, tileY, 1.0f);
+    } else {
+        glDisable(GL_TEXTURE_2D);
+    }
+    
     glMatrixMode(GL_MODELVIEW);
     glPushMatrix();
 
@@ -91,17 +135,26 @@ void drawCubeEnvironment(float posX, float posY, float posZ,
 
     glEnableClientState(GL_VERTEX_ARRAY);
     glEnableClientState(GL_NORMAL_ARRAY);
+    glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 
-    GLsizei stride = 6 * sizeof(GLfloat);
+    GLsizei stride = 8 * sizeof(GLfloat);
     glVertexPointer(3, GL_FLOAT, stride, (void*)0);
     glNormalPointer(GL_FLOAT, stride, (void*)(3 * sizeof(GLfloat)));
+    glTexCoordPointer(2, GL_FLOAT, stride, (void*)(6 * sizeof(GLfloat)));
 
     glDrawArrays(GL_QUADS, 0, 24);
 
     glDisableClientState(GL_NORMAL_ARRAY);
     glDisableClientState(GL_VERTEX_ARRAY);
+    glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 
     glPopMatrix();
+
+    if (texID != 0) {
+        glMatrixMode(GL_TEXTURE);
+        glPopMatrix();
+        glMatrixMode(GL_MODELVIEW);
+    }
 }
 
 void displayEnvironment(){
@@ -113,66 +166,82 @@ void displayEnvironment(){
     GLfloat lightPos[] = { 0.0f, 0.0f, 0.0f, 1.0f };
     glLightfv(GL_LIGHT0, GL_POSITION, lightPos);
     
-    // Ceiling
-    drawCubeEnvironment(0.0, 1.0, -10.0,              // Position
-                        10.0, 0.1, 13.0);             // Scale
+    // Ceiling (No Texture: texId = 0)
+    glColor3f(0.92f, 0.88f, 0.66f);
+    drawCubeEnvironment(0, 1.0f, 1.0f,
+                        0.0f, 1.0f, -10.0f,
+                        10.0f, 0.1f, 13.0f);
 
-    // Floor
-    drawCubeEnvironment(0.0, -1.0, -10.0,             // Position
-                        10.0, 0.1, 13.0);             // Scale
+    // Floor (No texture: texID = 0)
+    glColor3f(0.68f, 0.62f, 0.38f);
+    drawCubeEnvironment(0, 1.0f, 1.0f,
+                        0.0f, -1.0f, -10.0f,
+                        10.0f, 0.1f, 13.0f);
 
 
-    // Draw Walls - Arranged by Z Distance
+    // Reset color to pure white so wallpaper texture renders at true brightness
+    glColor3f(1.0f, 1.0f, 1.0f);
+
+    // Draw Walls
     // Front Left Wall
-    drawCubeEnvironment(-3.5, 0.0, -3.5,            // Position
-                        1.6, 1.0, 0.2,              // Scale
-                        -3.0, 0.0, 1.0, 0.0);       // Rotation
+    drawCubeEnvironment(wallTexID, 3.0f, 1.0f,
+                        -3.5f, 0.0f, -3.5f,
+                        1.6f, 1.0f, 0.2f,
+                        -3.0f, 0.0f, 1.0f, 0.0f);
 
     // Back Left Wall
-    drawCubeEnvironment(-3.0, 0.0, -6.5,            // Position
-                        1.6, 1.0, 0.2,              // Scale
-                        -30.0, 0.0, 1.0, 0.0);      // Rotation
+    drawCubeEnvironment(wallTexID, 3.0f, 1.0f,
+                        -3.0f, 0.0f, -6.5f,
+                        1.6f, 1.0f, 0.2f,
+                        -30.0f, 0.0f, 1.0f, 0.0f);
 
     // Back Left Wall
-    drawCubeEnvironment(-1.5, 0.0, -10.0,           // Position
-                        1.6, 1.0, 0.2,              // Scale
-                        -15.0, 0.0, 1.0, 0.0);      // Rotation
+    drawCubeEnvironment(wallTexID, 3.0f, 1.0f,
+                        -1.5f, 0.0f, -10.0f,
+                        1.6f, 1.0f, 0.2f,
+                        -15.0f, 0.0f, 1.0f, 0.0f);
     
     // Behind Left Wall
-    drawCubeEnvironment(0.0, 0.0, -16.0,            // Position
-                        2.0, 1.0, 0.2,              // Scale
-                        -45.0, 0.0, 1.0, 0.0);      // Rotation
+    drawCubeEnvironment(wallTexID, 4.0f, 1.0f,
+                        0.0f, 0.0f, -16.0f,
+                        2.0f, 1.0f, 0.2f,
+                        -45.0f, 0.0f, 1.0f, 0.0f);
     
     // Front Right Wall
-    drawCubeEnvironment(3.5, 0.0, -4.0,             // Position
-                        1.6, 1.0, 0.2,              // Scale
-                        5.0, 0.0, 1.0, 0.0);        // Rotation
+    drawCubeEnvironment(wallTexID, 3.0f, 1.0f,
+                        3.5f, 0.0f, -4.0f,
+                        1.6f, 1.0f, 0.2f,
+                        5.0f, 0.0f, 1.0f, 0.0f);
 
     // Back Right Wall
-    drawCubeEnvironment(3.0, 0.0, -7.0,             // Position
-                        1.6, 1.0, 0.2,              // Scale
-                        31.0, 0.0, 1.0, 0.0);       // Rotation
+    drawCubeEnvironment(wallTexID, 3.0f, 1.0f,
+                        3.0f, 0.0f, -7.0f,
+                        1.6f, 1.0f, 0.2f,
+                        31.0f, 0.0f, 1.0f, 0.0f);
     
     // Back Right Wall
-    drawCubeEnvironment(3.0, 0.0, -12.0,            // Position
-                        1.5, 1.0, 0.3,              // Scale
-                        -15.0, 0.0, 1.0, 0.0);      // Rotation
+    drawCubeEnvironment(wallTexID, 3.0f, 1.0f,
+                        3.0f, 0.0f, -12.0f,
+                        1.5f, 1.0f, 0.3f,
+                        -15.0f, 0.0f, 1.0f, 0.0f);
 
-    // Background Wall
-    drawCubeEnvironment(0.0, 0.0, -25.0,            // Position
-                        5.0, 1.0, 0.2);             // Scale
-                        
+    // Background Wall (No rotation needed, uses default rotAngle = 0.0f)
+    drawCubeEnvironment(wallTexID, 10.0f, 1.0f,
+                        0.0f, 0.0f, -25.0f,
+                        5.0f, 1.0f, 0.2f);
 
     // Draw Pillars
     // Right Pillar
-    drawCubeEnvironment(2.3, 0.0, -5.7,             // Position
-                        0.15, 1.0, 0.15,            // Scale
-                        45.0, 0.0, 1.0, 0.0);       // Rotation
+    drawCubeEnvironment(wallTexID, 0.5f, 1.0f,
+                        2.3f, 0.0f, -5.7f,
+                        0.15f, 1.0f, 0.15f,
+                        45.0f, 0.0f, 1.0f, 0.0f);
 
     // Left Pillar
-    drawCubeEnvironment(-0.6, 0.0, -7.0,            // Position
-                        0.15, 1.0, 0.15,            // Scale
-                        -30.0, 0.0, 1.0, 0.0);      // Rotation
+    drawCubeEnvironment(wallTexID, 0.5f, 1.0f,
+                        -0.6f, 0.0f, -7.0f,
+                        0.15f, 1.0f, 0.15f,
+                        -30.0f, 0.0f, 1.0f, 0.0f);
     
     glFlush();
 }
