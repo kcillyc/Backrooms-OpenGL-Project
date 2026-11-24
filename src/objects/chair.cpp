@@ -1,23 +1,33 @@
-// TODO: ADD Normals to be affected by LIGHTING
-
 #define GLEW_STATIC
 #define BUFFER_OFFSET(i) ((void*)(i))
 
 #include <GL/glew.h>
 #include "chair.h"
+#include <cmath>
+#include <cstddef>
 
-// Construct the chair mesh from boxes: seat, legs, back posts, rail, slats
+// Chair mesh construction, drawing, and rotation
 namespace Chair {
 
+// Chair vertex layout: position + lighting normal + texture coords
+struct ChairVertex {
+    float x, y, z;
+    float nx, ny, nz;
+    float u, v;
+};
+
+// GPU buffer and maximum space reserved for the chair mesh
 static GLuint gChairVBO = 0;
 static const int MAX_VERTS = 2000;
 
 // Chair mesh lives in this array; gChairN is how many vertices are used
-static Vtx gChair[MAX_VERTS];
+static ChairVertex gChair[MAX_VERTS];
 static int gChairN = 0;
 
-static const float SPIN_SPEED = 20.0f; // degrees per frame step (scaled in animate)
+// Spin behavior
+static const float SPIN_SPEED = 20.0f; // degrees per second (scaled in update)
 
+// Current rotation and smoothed spin speed
 static float gAngle = 0.0f;      // current Y rotation of the chair
 static float gSpin  = 0.0f;      // smoothed spin speed
 
@@ -45,15 +55,16 @@ static P3 cross(P3 a, P3 b)
               a.x * b.y - a.y * b.x);
 }
 
-// Absolute value without pulling in math.h
+// Absolute value of one vector component
 static float abs2(float v)
 {
     return v < 0.0f ? -v : v;
 }
 
-// Add a quad (a,b,c,d) to the chair mesh, generating simple UVs based on dominant normal axis
+// Add a quad with an outward face normal and UVs based on its dominant axis
 static void addQuad(P3 a, P3 b, P3 c, P3 d, float s)
 {
+    // Counterclockwise corners give an outward-facing normal
     P3 n = cross(sub(b, a), sub(d, a));
     float ax = abs2(n.x), ay = abs2(n.y), az = abs2(n.z);
     float ua, va, ub, vb, uc, vc, ud, vd;
@@ -76,11 +87,17 @@ static void addQuad(P3 a, P3 b, P3 c, P3 d, float s)
         ud = d.x * s; vd = d.y * s;
     }
 
+    // Give all four corners the same unit normal for crisp, flat box faces.
+    const float length = std::sqrt(n.x * n.x + n.y * n.y + n.z * n.z);
+    n.x /= length;
+    n.y /= length;
+    n.z /= length;
+
     // Append the four corners
-    gChair[gChairN++] = (Vtx){ a.x, a.y, a.z, ua, va };
-    gChair[gChairN++] = (Vtx){ b.x, b.y, b.z, ub, vb };
-    gChair[gChairN++] = (Vtx){ c.x, c.y, c.z, uc, vc };
-    gChair[gChairN++] = (Vtx){ d.x, d.y, d.z, ud, vd };
+    gChair[gChairN++] = ChairVertex{ a.x, a.y, a.z, n.x, n.y, n.z, ua, va };
+    gChair[gChairN++] = ChairVertex{ b.x, b.y, b.z, n.x, n.y, n.z, ub, vb };
+    gChair[gChairN++] = ChairVertex{ c.x, c.y, c.z, n.x, n.y, n.z, uc, vc };
+    gChair[gChairN++] = ChairVertex{ d.x, d.y, d.z, n.x, n.y, n.z, ud, vd };
 }
 
 // Build an axis-aligned box centered at c with half-extents h, then add all 6 faces
@@ -103,6 +120,7 @@ static void addBox(P3 c, P3 h, float s)
     addQuad(p000, p100, p101, p001, s); // bottom
 }
 
+// Construct the chair mesh from boxes: seat, legs, back posts, rail, slats
 void build(float textureScale)
 {
     int sx, sz, i;
@@ -139,48 +157,65 @@ void build(float textureScale)
     }
 }
 
+/* -------------------------- VBO setup -------------------------- */
+
+// Create the VBO, upload the mesh, and set up position/normal/texcoord pointers
 void initialize()
 {
     glGenBuffers(1, &gChairVBO);
     glBindBuffer(GL_ARRAY_BUFFER, gChairVBO);
 
+    // Reserve enough GPU storage for the maximum vertex count
     glBufferData(
         GL_ARRAY_BUFFER,
-        MAX_VERTS * sizeof(Vtx),
+        MAX_VERTS * sizeof(ChairVertex),
         NULL,
         GL_STATIC_DRAW
     );
 
+    // Upload only the vertices used by the completed chair mesh
     glBufferSubData(
         GL_ARRAY_BUFFER,
         0,
-        gChairN * sizeof(Vtx),
+        gChairN * sizeof(ChairVertex),
         gChair
     );
 
+    // Tell OpenGL where position, normal, and texcoord data live inside each vertex
     glVertexPointer(
         3,
         GL_FLOAT,
-        sizeof(Vtx),
-        BUFFER_OFFSET(0)
+        sizeof(ChairVertex),
+        BUFFER_OFFSET(offsetof(ChairVertex, x))
+    );
+
+    glNormalPointer(
+        GL_FLOAT,
+        sizeof(ChairVertex),
+        BUFFER_OFFSET(offsetof(ChairVertex, nx))
     );
 
     glTexCoordPointer(
         2,
         GL_FLOAT,
-        sizeof(Vtx),
-        BUFFER_OFFSET(12)
+        sizeof(ChairVertex),
+        BUFFER_OFFSET(offsetof(ChairVertex, u))
     );
 
     glEnableClientState(GL_VERTEX_ARRAY);
+    glEnableClientState(GL_NORMAL_ARRAY);
     glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 }
 
+/* -------------------------- chair drawing -------------------------- */
+
+// Draw the chair with the scene lighting and either wood texture or a brown color
 void draw(
     GLuint texture,
     bool useTexture
 )
 {
+    // Use the wood texture or a fallback brown color
     if (useTexture) {
         glBindTexture(GL_TEXTURE_2D, texture);
         glEnable(GL_TEXTURE_2D);
@@ -191,61 +226,80 @@ void draw(
     }
 
 
-    glDisable(GL_LIGHTING); // TODO: Remove after adding Normals
     glPushMatrix();
 
+    // Position the chair in the room, then apply its current Y rotation
     glTranslatef(0.0f, -1.0f, -4.0f);
     glRotatef(gAngle, 0.0f, 1.0f, 0.0f);
 
     glBindBuffer(GL_ARRAY_BUFFER, gChairVBO);
 
     glEnableClientState(GL_VERTEX_ARRAY);
+    glEnableClientState(GL_NORMAL_ARRAY);
     glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 
+    // Tell OpenGL where position, normal, and texcoord data live inside each vertex
     glVertexPointer(
         3,
         GL_FLOAT,
-        sizeof(Vtx),
-        BUFFER_OFFSET(0)
+        sizeof(ChairVertex),
+        BUFFER_OFFSET(offsetof(ChairVertex, x))
+    );
+
+    glNormalPointer(
+        GL_FLOAT,
+        sizeof(ChairVertex),
+        BUFFER_OFFSET(offsetof(ChairVertex, nx))
     );
 
     glTexCoordPointer(
         2,
         GL_FLOAT,
-        sizeof(Vtx),
-        BUFFER_OFFSET(12)
+        sizeof(ChairVertex),
+        BUFFER_OFFSET(offsetof(ChairVertex, u))
     );
 
+    // Draw all box faces using their stored lighting normals
     glDrawArrays(GL_QUADS, 0, gChairN);
 
+    // Restore the transform and stop using the chair's normal array
     glPopMatrix();
 
-    glEnable(GL_LIGHTING); // TODO: Remove after adding Normals
+    glDisableClientState(GL_NORMAL_ARRAY);
 
+    // Reset the color for the next object or HUD
     glColor3f(1.0f, 1.0f, 1.0f);
 }
 
+/* -------------------------- rotation updates -------------------------- */
+
+// Ease the spin speed toward its target and advance the chair rotation
 void update(bool spinning, float deltaSeconds)
 {
+    // Gradually speed up while spinning, or slow down after release
     if (spinning) {
         gSpin += (SPIN_SPEED - gSpin) * 0.06f;
     } else {
         gSpin += (0.0f - gSpin) * 0.06f;
     }
 
+    // Apply rotation using the elapsed time in seconds
     gAngle += gSpin * deltaSeconds;
 
+    // Wrap the angle after a full turn
     if (gAngle > 360.0f) {
         gAngle -= 360.0f;
     }
 }
 
+// Return the chair to its starting angle and stop any remaining spin
 void resetRotation()
 {
     gAngle = 0.0f;
     gSpin = 0.0f;
 }
 
+// Return the number of vertices used by the chair mesh
 int vertexCount()
 {
     return gChairN;
