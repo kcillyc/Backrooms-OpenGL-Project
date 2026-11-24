@@ -14,6 +14,7 @@ $sourcePath = [System.IO.Path]::GetFullPath($SourceFile)
 $chairSourcePath = Join-Path $projectRoot "src\objects\chair.cpp"
 $balloonSourcePath = Join-Path $projectRoot "src\objects\balloon.cpp"
 $environmentSourcePath = Join-Path $projectRoot "src\scene\environment.cpp"
+$entitySourcePath = Join-Path $projectRoot "src\objects\entity.cpp"
 
 if (-not (Test-Path -LiteralPath $sourcePath -PathType Leaf)) {
     throw "Source file not found: $sourcePath"
@@ -41,6 +42,7 @@ $textureSourcePath = Join-Path $projectRoot "src\rendering\texture.cpp"
     $chairSourcePath `
     $environmentSourcePath `
     $balloonSourcePath `
+    $entitySourcePath `
     "-I$(Join-Path $freeglutRoot 'include')" `
     "-I$(Join-Path $glewRoot 'include')" `
     "-L$(Join-Path $freeglutRoot 'lib')" `

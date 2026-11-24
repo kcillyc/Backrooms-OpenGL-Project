@@ -8,6 +8,9 @@
 
 using namespace std;
 
+namespace Environment {
+    // existing environment globals and functions
+
 // ============================================================================
 // GLOBAL VARIABLES & GEOMETRY DATA
 // ============================================================================
@@ -54,18 +57,6 @@ GLfloat cubeEnvVertices[] = {
 };
 
 // ============================================================================
-// FUNCTION PROTOTYPES
-// ============================================================================
-GLuint loadTexture(const char* filename);
-void initLightingAndFog();
-void initEnvironment();
-void drawCubeEnvironment(GLuint texID, float tileX, float tileY,
-                         float posX, float posY, float posZ,
-                         float scaleX, float scaleY, float scaleZ,
-                         float rotAngle = 0.0f, float rotX = 0.0f, float rotY = 0.0f, float rotZ = 0.0f);
-void drawEnvironment();
-
-// ============================================================================
 // ASSET & RESOURCE INITIALIZATION
 // ============================================================================
 
@@ -105,8 +96,19 @@ void initLightingAndFog() {
     glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
 
     // 1. Keep shadows pitch black, max out diffuse brightness
-    GLfloat ambientLight[]  = { 0.03f, 0.03f, 0.02f, 1.0f };
-    GLfloat diffuseLight[]  = { 1.00f, 0.96f, 0.78f, 1.0f };
+    GLfloat ambientLight[] = {
+        0.025f,
+        0.018f,
+        0.010f,
+        1.0f
+    };
+
+    GLfloat diffuseLight[] = {
+        0.78f,
+        0.68f,
+        0.50f,
+        1.0f
+    };
     glLightfv(GL_LIGHT0, GL_AMBIENT, ambientLight);
     glLightfv(GL_LIGHT0, GL_DIFFUSE, diffuseLight);
 
@@ -121,15 +123,20 @@ void initLightingAndFog() {
 
     // 4. Exponential distance fog so distant walls dissolve into darkness
     glEnable(GL_FOG);
-    GLfloat fogColor[] = { 0.01f, 0.01f, 0.01f, 1.0f };
+    GLfloat fogColor[] = {
+        0.035f,
+        0.025f,
+        0.012f,
+        1.0f
+    };
     glFogfv(GL_FOG_COLOR, fogColor);
     glFogi(GL_FOG_MODE, GL_EXP2);
     glFogf(GL_FOG_DENSITY, 0.10f);
-    glClearColor(0.01f, 0.01f, 0.01f, 1.0f);
+    glClearColor(0.018f, 0.012f, 0.008f, 1.0f);
 }
 
 // Initializes VBO geometry, textures, lighting, and fog
-void initEnvironment() {
+void initialize() {
     // Upload cube vertex data to GPU
     glGenBuffers(1, &VBOid);
     glBindBuffer(GL_ARRAY_BUFFER, VBOid);
@@ -151,7 +158,10 @@ void initEnvironment() {
 void drawCubeEnvironment(GLuint texID, float tileX, float tileY,
                          float posX, float posY, float posZ,
                          float scaleX, float scaleY, float scaleZ,
-                         float rotAngle, float rotX, float rotY, float rotZ) {
+                         float rotAngle = 0.0f,
+                         float rotX = 0.0f,
+                         float rotY = 0.0f,
+                         float rotZ = 0.0f) {
     // 1. Configure texture binding and UV repeat scale
     if (texID != 0) {
         glEnable(GL_TEXTURE_2D);
@@ -198,7 +208,7 @@ void drawCubeEnvironment(GLuint texID, float tileX, float tileY,
 }
 
 // Main display callback: positions camera spotlight and renders the Backrooms layout
-void drawEnvironment() {
+void draw() {
 
     // Lock spotlight to the camera's origin looking down -Z
     GLfloat lightPos[]      = { 0.0f, 0.0f,  0.0f, 1.0f };
@@ -233,5 +243,7 @@ void drawEnvironment() {
     // --- Pillars ---
     drawCubeEnvironment(wallTexID, 0.5f, 1.0f,   2.3f, 0.0f,  -5.7f,   0.15f, 1.0f, 0.15f,  45.0f, 0.0f, 1.0f, 0.0f);
     drawCubeEnvironment(wallTexID, 0.5f, 1.0f,  -0.6f, 0.0f,  -7.0f,   0.15f, 1.0f, 0.15f, -30.0f, 0.0f, 1.0f, 0.0f);
+
+}
 
 }
