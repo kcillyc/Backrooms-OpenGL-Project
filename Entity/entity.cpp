@@ -29,8 +29,17 @@ void display() {
 
     // wandering movement (drifting figure-eight)
     float lt = t - APPEAR;
-    float x = 0.8f * sinf(lt * 0.9f);
-    float y = 0.25f * sinf(lt * 1.8f);
+    //Entity Movement speed
+    float progress = fminf(lt / 4.0f, 1.0f);
+
+    //Entity position here if need further fixing
+    //where entity starting and finish line
+    float startX = -3.5f;
+    float endX = 3.5f;
+    //Entity pathing
+    float x = startX + ((endX - startX) * progress);
+    float y = -0.5f;
+    float z = -4.0f;
 
     glClearColor(0, 0, 0, 1);
     glClear(GL_COLOR_BUFFER_BIT);
@@ -44,7 +53,7 @@ void display() {
         glColor4f(1, 1, 1, alpha);     // alpha controls the fade
 
         glLoadIdentity();
-        glTranslatef(x, y, 0);
+        glTranslatef(x, y, z);
 
         glBegin(GL_QUADS);
             glTexCoord2f(0, 1); glVertex2f(-hw, -hh);
@@ -60,12 +69,30 @@ void display() {
 }
 
 void reshape(int w, int h) {
-    winW = w; winH = h;
+    if (h == 0) {
+        h = 1;
+    }
+
+    winW = w;
+    winH = h;
+
     glViewport(0, 0, w, h);
+
     float aspect = (float)w / (float)h;
+    float viewHeight = 3.0f;
+
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    glOrtho(-aspect, aspect, -1, 1, -1, 1);   // y: -1..1, x scales with window
+
+    glOrtho(
+        -viewHeight * aspect, // Left
+         viewHeight * aspect, // Right
+        -viewHeight,          // Bottom
+         viewHeight,          // Top
+        -10.0f,               // Near Z
+         10.0f                // Far Z
+    );
+
     glMatrixMode(GL_MODELVIEW);
 }
 
@@ -87,8 +114,9 @@ int main(int argc, char** argv) {
 
     // load texture
     int w, h, n;
-    unsigned char* data = stbi_load("entity.png", &w, &h, &n, 4);
-    if (!data) { printf("Could not load entity.png\n"); return 1; }
+    //can change entity here
+    unsigned char* data = stbi_load("Headman.png", &w, &h, &n, 4);
+    if (!data) { printf("Could not load Headman.png\n"); return 1; }
     imgAspect = (float)w / h;
 
     glGenTextures(1, &tex);
