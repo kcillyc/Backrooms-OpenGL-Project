@@ -1,5 +1,6 @@
 #pragma once
 
-void initEnvironment();
-void drawEnvironment();
-void destroyEnvironment();
+namespace Environment {
+    void initialize();
+    void draw();
+}

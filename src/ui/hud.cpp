@@ -3,7 +3,7 @@
 #include <GL/freeglut_ext.h>
 #include <cstdio>
 #include "hud.h"
-#include "balloon.h"
+#include "../objects/balloon.h"
 
 namespace Hud {
 

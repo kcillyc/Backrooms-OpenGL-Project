@@ -10,7 +10,9 @@ using namespace std;
 #include "../rendering/texture.h"
 #include "../objects/chair.h"
 #include "../objects/balloon.h"
+#include "../objects/entity.h"
 #include "../scene/environment.h"
+
 
 // Window and timing settings
 #define WIN_W          900
@@ -40,11 +42,10 @@ static void display(void)
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 
-    drawEnvironment();
-
+    Environment::draw();
+    Entity::draw();
     Balloon::draw();
     Chair::draw(gTexture, gUseTexture);
-
     Hud::draw(
         WIN_W,
         WIN_H,
@@ -70,7 +71,8 @@ static void animate(int value)
             gHoldTicks = LONG_TICKS;
         }
     }
-
+    
+    Entity::update(0.016f);
     Balloon::update(0.016f);
     Chair::update(gLongPress,0.016f);
 
@@ -140,7 +142,8 @@ static void init(void)
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_TEXTURE_2D);
 
-    initEnvironment();
+    Environment::initialize();
+    Entity::initialize();
     Balloon::initialize();
     Chair::build(TEX_SCALE);
     Chair::initialize();

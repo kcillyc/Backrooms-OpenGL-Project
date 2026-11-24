@@ -54,7 +54,7 @@ void drawBody() {
     glEnable(GL_TEXTURE_2D);
     glBindTexture(GL_TEXTURE_2D, latexTexture);
     glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-    glColor3f(0.90f, 0.055f, 0.075f); // Deep red rubber tint
+    glColor3f(0.55f, 0.10f, 0.13f); // darker muted red
 
     // Set up vertex array pointers for position, normals, and texture UVs
     glBindBuffer(GL_ARRAY_BUFFER, bodyVbo);
